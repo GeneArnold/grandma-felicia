@@ -9,6 +9,14 @@ export const VOICES = {
   feliciaBack: {
     "felicia-back-1": "Welcome back, sweetie! Let's win some more!",
   },
+  // ...and cheering on the big wins
+  feliciaBigWin: {
+    "felicia-big-1": "Way to go, sweetie!",
+    "felicia-big-2": "Look at you go!",
+  },
+  feliciaJackpot: {
+    "felicia-jackpot-1": "Woo-hoo! Jackpot! I knew you could do it!",
+  },
   welcome: {
     "welcome-1": "Welcome to the Christmas Casino! Here are your coins. Good luck!",
     "welcome-2": "Merry Christmas! Let's pull that lever!",

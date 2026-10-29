@@ -12,7 +12,7 @@ const SAMPLE_RATE = 24000;
 // pitch below 1 = deeper and slower.
 const ANNOUNCER = { voice: "Olivia.wav", pitch: 1.0 };
 const FELICIA = { voice: "Elena.wav", pitch: 1.0 }; // Gene picked Elena from the samples
-const SPEAKERS = { santa: { voice: "Jeremiah.wav", pitch: 0.86 }, feliciaHello: FELICIA, feliciaBack: FELICIA };
+const SPEAKERS = { santa: { voice: "Jeremiah.wav", pitch: 0.86 }, feliciaHello: FELICIA, feliciaBack: FELICIA, feliciaBigWin: FELICIA, feliciaJackpot: FELICIA };
 
 const force = process.argv.includes("--force");
 const tmp = "voices/.raw.wav";

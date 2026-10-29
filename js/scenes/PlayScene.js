@@ -483,6 +483,7 @@ export class PlayScene extends Phaser.Scene {
     this.tweens.add({ targets: felicia, y: H + 160, duration: 450, delay: 300, ease: "Back.easeOut" });
     this.tweens.add({ targets: felicia, angle: { from: -4, to: 4 }, duration: 300, yoyo: true, repeat: -1, delay: 750 });
     this.tweens.add({ targets: cheer, scale: 1, duration: 300, delay: 650, ease: "Back.easeOut" });
+    audio.say(jackpot ? "feliciaJackpot" : "feliciaBigWin", 1.0);
     this.tweens.add({ targets: amount, scale: 1.1, duration: 450, yoyo: true, repeat: -1 });
     const share = button(this, SHARE, 0xe63946, "📣 SHARE MY WIN", 38);
     const keep = button(this, KEEP, 0x2a9d3a, "▶ KEEP PLAYING", 42);
