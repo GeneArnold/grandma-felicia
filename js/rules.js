@@ -15,7 +15,7 @@ export const SYMBOLS = [
   { weight: 4, pay: 80 },
   { weight: 5, pay: 50 },
   { weight: 6, pay: 30 },
-  { weight: 2, pay: 0 }, // the ticket
+  { weight: 3, pay: 0 }, // the ticket
 ];
 export const TICKET = 6;
 export const PAIR_PAY = 10; // any two the same (not tickets)
@@ -42,7 +42,7 @@ export function judge(line) {
 
 // Now and then a pull lines up three of the four best pictures (the bigger the pay, the rarer), so the
 // big wins come round more often than the reels alone would bring them.
-export const LUCKY_CHANCE = 0.012;
+export const LUCKY_CHANCE = 0.008;
 const LUCKY = [0, 1, 2, 3].map((kind) => ({ kind, weight: kind + 1 }));
 
 export function spin(rng = Math.random) {
@@ -55,7 +55,7 @@ export function spin(rng = Math.random) {
 }
 
 // Santa drops in now and then, win or lose, with a sack of coins.
-export const SANTA_CHANCE = 0.02;
+export const SANTA_CHANCE = 0.008;
 const SANTA_GIFTS = [20, 30, 50, 50, 75, 100];
 export function santaVisit(rng = Math.random) {
   return rng() < SANTA_CHANCE ? SANTA_GIFTS[Math.floor(rng() * SANTA_GIFTS.length)] : 0;
