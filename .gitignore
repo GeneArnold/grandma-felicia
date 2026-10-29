@@ -2,3 +2,7 @@
 # notes for the people building it stay on this computer
 CLAUDE.md
 art/source/
+*.jpg
+!img/*.jpg
+*.jpeg
+voices/.raw.wav
