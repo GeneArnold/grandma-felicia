@@ -6,3 +6,4 @@ art/source/
 !img/*.jpg
 *.jpeg
 voices/.raw.wav
+.commit

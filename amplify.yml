@@ -8,10 +8,12 @@ frontend:
       commands:
         - mkdir -p dist
         - cp -r index.html style.css manifest.webmanifest sw.js vendor js icons img voices dist/
-        - sed -i "s/casino-dev/casino-$(echo "$AWS_COMMIT_ID" | cut -c1-12)/" dist/sw.js
+        # The commit, from git: Amplify's AWS_COMMIT_ID is just "HEAD" when a build is started by hand.
+        - git rev-parse HEAD > .commit 2>/dev/null || echo "$AWS_COMMIT_ID" > .commit
+        - sed -i "s/casino-dev/casino-$(cut -c1-12 .commit)/" dist/sw.js
         - grep -q 'casino-dev' dist/sw.js && echo "sw.js VERSION was not stamped" && exit 1 || true
         # The version the title screen shows, and version.json, which tells installed copies a newer one is out.
-        - ID=$(echo "$AWS_COMMIT_ID" | cut -c1-12); BUILT="$(TZ=America/New_York date '+%b %-d, %-I:%M%p')"; sed -i "s/VERSION = \"dev\"/VERSION = \"$ID\"/; s/BUILT = \"\"/BUILT = \"$BUILT\"/" dist/js/version.js; echo "{\"version\":\"$ID\",\"built\":\"$BUILT\"}" > dist/version.json
+        - ID=$(cut -c1-12 .commit); BUILT="$(TZ=America/New_York date '+%b %-d, %-I:%M%p')"; sed -i "s/VERSION = \"dev\"/VERSION = \"$ID\"/; s/BUILT = \"\"/BUILT = \"$BUILT\"/" dist/js/version.js; echo "{\"version\":\"$ID\",\"built\":\"$BUILT\"}" > dist/version.json
         - grep -q '"dev"' dist/js/version.js && echo "version.js was not stamped" && exit 1 || true
   artifacts:
     baseDirectory: dist
