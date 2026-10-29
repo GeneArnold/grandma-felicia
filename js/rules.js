@@ -15,7 +15,7 @@ export const SYMBOLS = [
   { weight: 4, pay: 80 },
   { weight: 5, pay: 50 },
   { weight: 6, pay: 30 },
-  { weight: 3, pay: 0 }, // the ticket
+  { weight: 2, pay: 0 }, // the ticket
 ];
 export const TICKET = 6;
 export const PAIR_PAY = 10; // any two the same (not tickets)
@@ -40,7 +40,16 @@ export function judge(line) {
   return { kind: "none", coins: 0 };
 }
 
+// Now and then a pull lines up three of the four best pictures (the bigger the pay, the rarer), so the
+// big wins come round more often than the reels alone would bring them.
+export const LUCKY_CHANCE = 0.012;
+const LUCKY = [0, 1, 2, 3].map((kind) => ({ kind, weight: kind + 1 }));
+
 export function spin(rng = Math.random) {
+  if (rng() < LUCKY_CHANCE) {
+    const { kind } = pickWeighted(LUCKY, rng);
+    return { line: [kind, kind, kind], ...judge([kind, kind, kind]) };
+  }
   const line = [0, 1, 2].map(() => SYMBOLS.indexOf(pickWeighted(SYMBOLS, rng)));
   return { line, ...judge(line) };
 }
