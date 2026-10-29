@@ -1,6 +1,6 @@
 // A slot machine (js/machines.js says which, and how it looks). One big PULL button spins the three reels; three the same pays,
 // two the same pays a little, two tickets win a scratch-off, and now and then Santa flies over and
-// drops some coins. When there aren't enough coins for another pull, the game is over.
+// drops some coins. CASH OUT takes the coins home: that's the score. Run out of coins and the game is over.
 // Everything a pull wins is saved the moment PULL is pressed, so closing the app mid-spin loses nothing.
 import * as audio from "../audio.js";
 import * as store from "../storage.js";
@@ -11,6 +11,9 @@ import { listenForTaps, near } from "../taps.js";
 import { H, W, backdrop, button, coinShower, coins, marquee, setupCamera, text } from "../ui.js";
 
 const MENU = { x: 14, y: 18, w: 120, h: 66 };
+const CASH = { x: 402, y: 18, w: 124, h: 66 };
+const CASH_YES = { x: 70, y: 560, w: 400, h: 110 };
+const CASH_NO = { x: 70, y: 692, w: 400, h: 90 };
 const PULL = { x: 50, y: 586, w: 440, h: 136 };
 const SHARE = { x: 70, y: 560, w: 400, h: 100 };
 const KEEP = { x: 70, y: 692, w: 400, h: 110 };
@@ -74,6 +77,7 @@ export class PlayScene extends Phaser.Scene {
     listenForTaps(this, (x, y) => {
       if (this.overlay) return this.overlay.tap(x, y);
       if (near(x, y, MENU, 14)) this.scene.start("Floor");
+      else if (near(x, y, CASH, 14)) this.askCashOut();
       else if (near(x, y, PULL, 30)) this.pull();
     }, { lockMs: 400 });
   }
@@ -96,16 +100,18 @@ export class PlayScene extends Phaser.Scene {
   drawCounter() {
     button(this, MENU, 0x7d5a3c, "BACK", 28);
     const g = this.add.graphics();
-    g.fillStyle(0x000000, 0.45).fillRoundedRect(150, 18, 376, 66, 33);
-    g.lineStyle(3, 0xd4a017).strokeRoundedRect(150, 18, 376, 66, 33);
+    g.fillStyle(0x000000, 0.45).fillRoundedRect(150, 18, 238, 66, 33);
+    g.lineStyle(3, 0xd4a017).strokeRoundedRect(150, 18, 238, 66, 33);
     this.add.image(186, 51, "coin").setScale(0.8);
     this.coinText = text(this, 222, 52, "", 46, { originX: 0, color: "#ffe066", strokeThickness: 7 });
-    text(this, 512, 52, "COINS", 20, { originX: 1, color: "#fff3c4", strokeThickness: 4 });
     this.showCoins();
+    const cash = button(this, CASH, 0xd4a017, "CASH\nOUT", 26);
+    cash.label.setColor("#2a0a14").setStroke("#fff3c4", 4);
   }
 
   showCoins() {
     this.coinText.setText(coins(this.shown));
+    if (this.coinText.width > 160) this.coinText.setScale(160 / this.coinText.width);
   }
 
   // Rolls the coin count up (or down) to n.
@@ -373,8 +379,51 @@ export class PlayScene extends Phaser.Scene {
     audio.play("gameOver");
     audio.say("gameOver", 0.4);
     const run = { ...this.run };
-    const { rank, previousTop } = store.finishGame(this.run);
-    this.time.delayedCall(2800, () => this.scene.start("Results", { run, rank, previousTop }));
+    store.finishGame(this.run);
+    this.time.delayedCall(2800, () => this.scene.start("Results", { run }));
+  }
+
+  // ---- cashing out ----
+
+  // Take the coins home? A big YES, or back to the slots.
+  askCashOut() {
+    if (this.busy) return;
+    this.busy = true;
+    this.pullGlow.pause();
+    audio.play("pop");
+    const layer = this.add.container(0, 0).setDepth(9500);
+    layer.add(this.add.rectangle(W / 2, H / 2, W, H, 0x000000, 0.88));
+    layer.add(marquee(this, W / 2, 330, 470, 330));
+    layer.add(text(this, W / 2, 230, "CASH OUT?", 64, { color: "#ffe066", strokeThickness: 10 }));
+    layer.add(text(this, W / 2, 310, "TAKE HOME", 32, { color: "#fff3c4", strokeThickness: 6 }));
+    layer.add(this.add.image(W / 2 - 120, 390, "coin").setScale(1.1));
+    layer.add(text(this, W / 2 + 20, 392, coins(this.run.coins), 76, { color: "#7CFC9A", strokeThickness: 10 }));
+    const yes = button(this, CASH_YES, 0xd4a017, "💰 CASH OUT", 46);
+    yes.label.setColor("#2a0a14").setStroke("#fff3c4", 5);
+    const no = button(this, CASH_NO, 0x2a9d3a, "▶ BACK TO THE SLOTS", 34);
+    layer.add([yes.g, yes.label, no.g, no.label]);
+    this.tweens.add({ targets: yes.label, scale: 1.06, duration: 550, yoyo: true, repeat: -1 });
+    this.overlay = {
+      tap: (x, y) => {
+        if (near(x, y, CASH_YES, 16)) {
+          this.overlay = { tap: () => {} };
+          this.cashOut();
+        } else if (near(x, y, CASH_NO, 16)) {
+          this.overlay = null;
+          layer.destroy();
+          this.busy = false;
+          this.pullGlow.resume();
+        }
+      },
+    };
+  }
+
+  cashOut() {
+    audio.play("bigWin");
+    coinShower(this, COUNTER.x, COUNTER.y, W / 2, 900, 30);
+    const run = { ...this.run };
+    const { rank, previousTop } = store.finishGame(this.run, { cashedOut: true });
+    this.time.delayedCall(1400, () => this.scene.start("Results", { run, cashedOut: true, rank, previousTop }));
   }
 
   // ---- the big-win window ----

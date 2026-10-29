@@ -1,5 +1,5 @@
 // Fun Shed kit v1.4
-// HIGH SCORES: this phone's ten best games, by the most coins held. One big BACK button.
+// HIGH SCORES: this phone's ten best games, by the coins cashed out. One big BACK button.
 import * as store from "../storage.js";
 import { listenForTaps, near } from "../taps.js";
 import { W, backdrop, button, coins, marquee, setupCamera, text } from "../ui.js";
@@ -23,7 +23,7 @@ export class BoardScene extends Phaser.Scene {
     g.fillStyle(0x000000, 0.45).fillRoundedRect(36, 220, W - 72, 600, 20);
     const board = store.board();
     if (!board.length) {
-      text(this, W / 2, 470, "No games yet.\nGo win some coins!", 34, { strokeThickness: 6 });
+      text(this, W / 2, 470, "No scores yet.\nWin some coins and\nCASH OUT!", 34, { strokeThickness: 6 });
     }
     board.forEach((row, i) => {
       const y = 254 + i * 56;

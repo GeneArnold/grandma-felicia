@@ -11,7 +11,7 @@ const DEFAULTS = {
   seenIntro: false, // the first intro waits a little longer
   unlocked: ["jingle"], // the slot machines open on this phone (js/machines.js)
   game: null,  // the game in progress (see newGame), or null
-  board: [],   // this phone's top 10 games, [{ score (most coins held), biggest, pulls, at }], best first
+  board: [],   // this phone's top 10 games, [{ score (coins cashed out), machine, biggest, pulls, at }], best first
 };
 
 let cache = null;
@@ -46,7 +46,7 @@ export function set(name, value) {
 export function newGame() {
   const game = {
     coins: START_COINS,
-    best: START_COINS, // the most coins held at once: the score
+    best: START_COINS, // the most coins held at once
     biggest: 0,        // the biggest single win
     pulls: 0,
     tickets: 0,        // scratch-offs won
@@ -85,14 +85,18 @@ export function topScore() {
   return Math.max(0, ...load().board.map((r) => r.score));
 }
 
-// Files the finished game on this phone's board and clears it.
-// → { rank (1-10, or 0 if it missed the board), previousTop }
-export function finishGame(game) {
+// Ends the game. Cashed out, the coins taken home are the score, filed on this phone's board.
+// → { rank (1-10, or 0 if it missed the board or wasn't cashed out), previousTop }
+export function finishGame(game, { cashedOut = false } = {}) {
   const data = load();
   const previousTop = topScore();
-  const entry = { score: game.best, biggest: game.biggest, pulls: game.pulls, at: Date.now() };
-  data.board = [...data.board, entry].sort((a, b) => b.score - a.score || a.at - b.at).slice(0, BOARD_SIZE);
   data.game = null;
+  if (!cashedOut) {
+    save();
+    return { rank: 0, previousTop };
+  }
+  const entry = { score: game.coins, machine: game.machine, biggest: game.biggest, pulls: game.pulls, at: Date.now() };
+  data.board = [...data.board, entry].sort((a, b) => b.score - a.score || a.at - b.at).slice(0, BOARD_SIZE);
   save();
   return { rank: data.board.indexOf(entry) + 1, previousTop };
 }

@@ -50,7 +50,7 @@ export class IntroScene extends Phaser.Scene {
       this.add.text(70, y, icon, { fontSize: "44px", resolution: 2, padding: { y: 6 } }).setOrigin(0, 0.5);
       text(this, 140, y, words, 36, { originX: 0, strokeThickness: 7 });
     });
-    const coinLine = game ? `YOU HAVE ${coins(game.coins)} COINS` : "PLAY TILL YOUR COINS RUN OUT!";
+    const coinLine = game ? `YOU HAVE ${coins(game.coins)} COINS` : "CASH OUT WHILE YOU'RE AHEAD!";
     text(this, W / 2, 744, coinLine, 28, { color: "#ffe066", strokeThickness: 6 });
 
     const go = text(this, W / 2, 870, "TAP TO PLAY!", 52, { color: "#7CFC9A", strokeThickness: 9 });
