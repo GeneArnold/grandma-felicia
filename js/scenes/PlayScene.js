@@ -322,9 +322,10 @@ export class PlayScene extends Phaser.Scene {
   santaFlies(gift) {
     audio.play("sleigh");
     audio.say("santa", 0.4);
-    const sleigh = this.add.text(W + 160, 150, "🦌🦌🛷🎅", { fontSize: "60px", resolution: 2 }).setOrigin(0.5).setDepth(9000);
-    this.tweens.add({ targets: sleigh, x: -220, duration: 3400, ease: "Linear", onComplete: () => sleigh.destroy() });
-    this.tweens.add({ targets: sleigh, y: 120, duration: 400, yoyo: true, repeat: 3, ease: "Sine.easeInOut" });
+    const sleigh = this.add.image(W + 200, 160, "santa-sleigh").setDepth(9000);
+    sleigh.setScale(380 / sleigh.width);
+    this.tweens.add({ targets: sleigh, x: -200, duration: 3400, ease: "Linear", onComplete: () => sleigh.destroy() });
+    this.tweens.add({ targets: sleigh, y: 130, duration: 400, yoyo: true, repeat: 3, ease: "Sine.easeInOut" });
     this.time.delayedCall(1300, () => {
       this.say(`🎅 SANTA GAVE YOU ${gift} COINS!`, "#7CFC9A", 32);
       coinShower(this, W / 2, 160, COUNTER.x, COUNTER.y, Math.ceil(gift / 5), () => {

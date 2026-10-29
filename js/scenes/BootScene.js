@@ -10,6 +10,7 @@ export class BootScene extends Phaser.Scene {
 
   preload() {
     this.load.image("felicia", "img/felicia.png");
+    this.load.image("santa-sleigh", "img/santa-sleigh.png");
     for (const key of ALL_SYMBOLS) this.load.image(key, `img/symbols/${key}.png`);
     this.load.on("loaderror", (file) => console.warn("Could not load", file.src));
   }

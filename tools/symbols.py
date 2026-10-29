@@ -1,6 +1,6 @@
-# Turns the chosen reel pictures from tools/swarm.py into img/symbols/<name>.png: the white
-# background goes transparent (whatever is inside the outlines stays, white snow included), and the
-# picture is trimmed and scaled to fit 256 x 256.
+# Turns the chosen pictures from tools/swarm.py into the game's sprites: the white background goes
+# transparent (whatever is inside the outlines stays, white snow included), and the picture is
+# trimmed and scaled. Reel pictures go to img/symbols/<name>.png, fitting 256 x 256.
 # Run from the project folder:  python3 tools/symbols.py
 import pathlib
 
@@ -14,12 +14,17 @@ PICKS = {
     "shop-santa": 1, "shop-elf": 2, "shop-train": 1, "shop-bear": 2, "shop-horse": 2, "shop-soldier": 2,
     "snow-flake": 2, "snow-globe": 2, "snow-cocoa": 2, "snow-sled": 2, "snow-mittens": 2, "snow-skates": 1,
 }
+# Other sprites: name → (try, where it goes, widest size, how far across (0-1) white patches shut in by
+# outlines are background too, and the same along the bottom fifth: the gaps between the reindeer, their
+# reins and the sleigh's runners, but not Santa's beard)
+OTHERS = {"santa-sleigh": (3, "img/santa-sleigh.png", 640, 0.6)}
 SIZE = 256
 KEY = (255, 0, 255)
 
-out = pathlib.Path("img/symbols")
-out.mkdir(parents=True, exist_ok=True)
-for name, pick in PICKS.items():
+pathlib.Path("img/symbols").mkdir(parents=True, exist_ok=True)
+jobs = [(name, pick, f"img/symbols/{name}.png", SIZE, 0) for name, pick in PICKS.items()]
+jobs += [(name, pick, dest, size, gaps) for name, (pick, dest, size, gaps) in OTHERS.items()]
+for name, pick, dest, size, gaps in jobs:
     im = Image.open(f"art/source/gen/{name}-{pick}.png").convert("RGB")
     w, h = im.size
     # flood the white background away from every edge
@@ -31,6 +36,10 @@ for name, pick in PICKS.items():
         for x in (0, w - 1):
             if im.getpixel((x, y)) != KEY and min(im.getpixel((x, y))) > 225:
                 ImageDraw.floodfill(im, (x, y), KEY, thresh=30)
+    for y in range(0, h, 4):
+        for x in range(0, w if gaps and y > h * 0.8 else int(w * gaps), 4):
+            if im.getpixel((x, y)) != KEY and min(im.getpixel((x, y))) > 235:
+                ImageDraw.floodfill(im, (x, y), KEY, thresh=20)
     mask = Image.new("L", (w, h), 255)
     px, m = im.load(), mask.load()
     for y in range(h):
@@ -41,7 +50,7 @@ for name, pick in PICKS.items():
     clean = Image.open(f"art/source/gen/{name}-{pick}.png").convert("RGBA")
     clean.putalpha(mask)
     clean = clean.crop(mask.getbbox())
-    scale = SIZE / max(clean.size)
+    scale = size / max(clean.size)
     clean = clean.resize((round(clean.width * scale), round(clean.height * scale)), Image.LANCZOS)
-    clean.save(out / f"{name}.png", optimize=True)
-    print(out / f"{name}.png", clean.size)
+    clean.save(dest, optimize=True)
+    print(dest, clean.size)

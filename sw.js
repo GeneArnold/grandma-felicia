@@ -36,6 +36,7 @@ const FILES = [
   "icons/icon-512.png",
   "icons/icon-maskable-512.png",
   "img/felicia.png",
+  "img/santa-sleigh.png",
   "img/symbols/deer-baby.png",
   "img/symbols/deer-bells.png",
   "img/symbols/deer-gold.png",
