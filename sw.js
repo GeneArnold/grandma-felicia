@@ -16,6 +16,7 @@ const FILES = [
   "js/machines.js",
   "js/main.js",
   "js/rules.js",
+  "js/scenes/AlbumScene.js",
   "js/scenes/BoardScene.js",
   "js/scenes/BootScene.js",
   "js/scenes/FloorScene.js",

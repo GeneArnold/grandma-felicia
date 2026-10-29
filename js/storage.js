@@ -11,6 +11,7 @@ const DEFAULTS = {
   seenIntro: false, // the first intro waits a little longer
   unlocked: ["jingle"], // the slot machines open on this phone (js/machines.js)
   game: null,  // the game in progress (see newGame), or null
+  album: {},   // the cards collected on this phone: { machine id: [kinds with three in a row] }
   board: [],   // this phone's top 10 games, [{ score (coins cashed out), machine, biggest, pulls, at }], best first
 };
 
@@ -76,6 +77,18 @@ export function unlockFor(coins) {
   }
   return opened;
 }
+
+// Puts a three-in-a-row card in the album. → true if it's a new one
+export function collect(machineId, kind) {
+  const data = load();
+  const cards = data.album[machineId] ?? [];
+  if (cards.includes(kind)) return false;
+  data.album = { ...data.album, [machineId]: [...cards, kind] };
+  save();
+  return true;
+}
+
+export const albumCount = () => Object.values(load().album).reduce((n, cards) => n + cards.length, 0);
 
 export function board() {
   return load().board;

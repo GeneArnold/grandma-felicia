@@ -1,6 +1,6 @@
 // A slot machine (js/machines.js says which, and how it looks). One big PULL button spins the three reels; three the same pays,
 // two the same pays a little, two tickets win a scratch-off, and now and then Santa flies over and
-// drops some coins. CASH OUT takes the coins home: that's the score. Run out of coins and the game is over.
+// drops some coins. Every new three in a row is a card for the album (AlbumScene). CASH OUT takes the coins home: that's the score. Run out of coins and the game is over.
 // Everything a pull wins is saved the moment PULL is pressed, so closing the app mid-spin loses nothing.
 import * as audio from "../audio.js";
 import * as store from "../storage.js";
@@ -23,6 +23,7 @@ const WINDOW = { w: 142, h: 172 }; // each reel's window
 const SPACING = 200; // between pictures on a reel: more than a window, so a stopped reel shows one whole picture
 const FACE_SIZE = 128; // the biggest a picture is drawn, either way
 const COUNTER = { x: 214, y: 51 }; // where coins fly to
+const TEASE_MS = 1300; // how much longer the last reel spins when the first two match
 
 const MISSES = ["PULL AGAIN!", "SO CLOSE!", "NEXT ONE'S LUCKY!", "KEEP GOING!"];
 
@@ -85,7 +86,7 @@ export class PlayScene extends Phaser.Scene {
   update(_, delta) {
     for (const reel of this.reels ?? []) {
       if (!reel.spinning) continue;
-      reel.offset += delta * 2.2;
+      reel.offset += delta * (reel.slow ? 1.1 : 2.2);
       while (reel.offset >= SPACING) {
         reel.offset -= SPACING;
         reel.faces.unshift(reel.faces.pop());
@@ -231,6 +232,7 @@ export class PlayScene extends Phaser.Scene {
     const result = spin();
     const santa = result.kind === "ticket" ? 0 : santaVisit();
     if (result.coins) store.addWin(run, result.coins);
+    const newCard = (result.kind === "three" || result.kind === "jackpot") && store.collect(this.machine.id, result.symbol);
     if (result.kind === "ticket") {
       run.tickets++;
       run.ticket = scratchTicket(Math.random, { not: run.lastTicket }); // a different kind each time
@@ -251,19 +253,37 @@ export class PlayScene extends Phaser.Scene {
       this.time.delayedCall(140 + i * 90, () => (reel.spinning = true));
     });
     const ticking = this.time.addEvent({ delay: 75, loop: true, callback: () => audio.play("tick") });
+    // The first two the same (and not tickets): the last reel slows down and takes its time.
+    const [a, b] = result.line;
+    const tease = a === b && a !== TICKET;
     result.line.forEach((id, i) => {
-      this.time.delayedCall(900 + i * 420, () => {
+      this.time.delayedCall(900 + i * 420 + (i === 2 && tease ? TEASE_MS : 0), () => {
         this.stopReel(this.reels[i], id);
+        if (i === 1 && tease) this.teaseLastReel();
         if (i === 2) {
           ticking.remove();
-          this.time.delayedCall(260, () => this.showResult(result, santa));
+          this.teaseGlow?.remove();
+          this.teaseGlow = null;
+          this.time.delayedCall(260, () => this.showResult(result, santa, newCard));
         }
       });
     });
   }
 
+  // The two that match glow, a drumroll, and the last reel spins slower.
+  teaseLastReel() {
+    this.reels[2].slow = true;
+    this.say("HERE IT COMES...", "#ffe066", 40);
+    audio.play("drumroll");
+    this.flash.clear();
+    this.flash.setAlpha(1).lineStyle(8, 0xffe066);
+    for (const i of [0, 1]) this.flash.strokeRoundedRect(REEL_X[i] - WINDOW.w / 2, REEL_Y - WINDOW.h / 2, WINDOW.w, WINDOW.h, 12);
+    this.teaseGlow = this.tweens.add({ targets: this.flash, alpha: { from: 1, to: 0.25 }, duration: 180, yoyo: true, repeat: -1 });
+  }
+
   stopReel(reel, id) {
     reel.spinning = false;
+    reel.slow = false;
     reel.faces.forEach((f) => this.showFace(f, this.randomKind()));
     this.showFace(reel.faces[2], id);
     reel.offset = -60;
@@ -280,21 +300,36 @@ export class PlayScene extends Phaser.Scene {
 
   // Lights up the reels that won.
   lightUp(which) {
-    this.flash.clear();
+    this.flash.clear().setAlpha(1);
     this.flash.lineStyle(8, 0xffe066);
     for (const i of which) this.flash.strokeRoundedRect(REEL_X[i] - WINDOW.w / 2, REEL_Y - WINDOW.h / 2, WINDOW.w, WINDOW.h, 12);
     this.tweens.add({ targets: this.flash, alpha: { from: 1, to: 0.3 }, duration: 260, yoyo: true, repeat: 3 });
-    for (const i of which) this.tweens.add({ targets: this.reels[i].faces[2], scale: 1.18, duration: 200, yoyo: true, repeat: 2 });
+    for (const i of which) {
+      const face = this.reels[i].faces[2];
+      this.tweens.add({ targets: face, scale: face.scale * 1.1, duration: 200, yoyo: true, repeat: 2 });
+    }
   }
 
-  showResult(result, santa) {
+  showResult(result, santa, newCard) {
     const { kind, line } = result;
-    const next = () => (santa ? this.santaFlies(santa) : this.ready());
+    const afterSanta = () => (santa ? this.santaFlies(santa) : this.ready());
+    const next = newCard ? () => this.showNewCard(result.symbol, afterSanta) : afterSanta;
     const matching = [0, 1, 2].filter((i) => line[i] === result.symbol);
 
     if (kind === "jackpot" || kind === "three") {
       this.lightUp(matching);
       const big = kind === "jackpot" || result.coins >= BIG_WIN;
+      // the bigger the win, the bigger the fuss
+      const camera = this.cameras.main;
+      if (kind === "jackpot") {
+        camera.shake(900, 0.012);
+        camera.flash(500, 255, 230, 120);
+      } else if (big) {
+        camera.shake(500, 0.008);
+        camera.flash(300, 255, 230, 120);
+      } else {
+        camera.shake(250, 0.004);
+      }
       this.say(kind === "jackpot" ? `JACKPOT! +${result.coins}` : `WINNER! +${result.coins}`, "#7CFC9A", 40);
       audio.play(kind === "jackpot" ? "jackpot" : big ? "bigWin" : "win");
       audio.say(kind === "jackpot" ? "jackpot" : big ? "bigWin" : "win", 0.2);
@@ -439,6 +474,15 @@ export class PlayScene extends Phaser.Scene {
     for (const dx of [-130, 0, 130]) layer.add(this.picture(W / 2 + dx, 300, result.symbol, 110));
     const amount = text(this, W / 2, 410, `+${coins(result.coins)}`, 84, { color: "#7CFC9A", strokeThickness: 10 });
     layer.add(amount);
+    if (jackpot) this.fireworks(layer);
+    // Grandma Felicia pops up to cheer
+    const felicia = this.add.image(104, H + 330, "felicia").setOrigin(0.5, 1);
+    felicia.setScale(330 / felicia.height);
+    const cheer = text(this, 330, 884, jackpot ? "WOO-HOO!\nJACKPOT!" : "WAY TO GO!", 36, { color: "#ffe066", strokeThickness: 8 }).setScale(0);
+    layer.add([felicia, cheer]);
+    this.tweens.add({ targets: felicia, y: H + 160, duration: 450, delay: 300, ease: "Back.easeOut" });
+    this.tweens.add({ targets: felicia, angle: { from: -4, to: 4 }, duration: 300, yoyo: true, repeat: -1, delay: 750 });
+    this.tweens.add({ targets: cheer, scale: 1, duration: 300, delay: 650, ease: "Back.easeOut" });
     this.tweens.add({ targets: amount, scale: 1.1, duration: 450, yoyo: true, repeat: -1 });
     const share = button(this, SHARE, 0xe63946, "📣 SHARE MY WIN", 38);
     const keep = button(this, KEEP, 0x2a9d3a, "▶ KEEP PLAYING", 42);
@@ -474,5 +518,63 @@ export class PlayScene extends Phaser.Scene {
       },
     };
   }
-}
 
+  // Fireworks bursting round the jackpot sign.
+  fireworks(layer) {
+    const colours = [0xffe066, 0x7cfc9a, 0xff6b6b, 0x8ecae6, 0xffffff];
+    for (let n = 0; n < 6; n++) {
+      this.time.delayedCall(200 + n * 450, () => {
+        if (!layer.active) return;
+        const x = 70 + Math.random() * (W - 140);
+        const y = 90 + Math.random() * 120 + (n % 2) * 380;
+        const colour = colours[n % colours.length];
+        audio.play("firework");
+        for (let k = 0; k < 18; k++) {
+          const angle = (k / 18) * Math.PI * 2;
+          const spark = this.add.circle(x, y, 5, colour);
+          layer.add(spark);
+          this.tweens.add({
+            targets: spark, x: x + Math.cos(angle) * 110, y: y + Math.sin(angle) * 110 + 30, alpha: 0, scale: 0.4,
+            duration: 900, ease: "Cubic.easeOut", onComplete: () => spark.destroy(),
+          });
+        }
+      });
+    }
+  }
+
+  // ---- a new album card ----
+
+  // The card for a first-ever three in a row: it turns over in the middle, then flies off to the album.
+  showNewCard(kind, next) {
+    const layer = this.add.container(0, 0).setDepth(9400);
+    layer.add(this.add.rectangle(W / 2, H / 2, W, H, 0x000000, 0.8));
+    const card = this.add.container(W / 2, 470);
+    const g = this.add.graphics();
+    g.fillStyle(0x2a0a14).fillRoundedRect(-124, -164, 248, 328, 22);
+    g.fillStyle(this.machine.rim).fillRoundedRect(-118, -158, 236, 316, 18);
+    g.fillStyle(0xfffbea).fillRoundedRect(-104, -144, 208, 288, 12);
+    const name = text(this, 0, -116, this.machine.name, 22, { color: "#a3122a", stroke: "#ffffff", strokeThickness: 3 });
+    if (name.width > 196) name.setScale(196 / name.width);
+    card.add([g, name, this.picture(0, 0, kind, 150), text(this, 0, 116, `${SYMBOLS[kind].pay} COINS`, 30, { color: "#a3122a", stroke: "#ffffff", strokeThickness: 4 })]);
+    layer.add(card);
+    const title = text(this, W / 2, 230, "NEW CARD!", 60, { color: "#7CFC9A", strokeThickness: 9 });
+    const count = text(this, W / 2, 700, `${store.albumCount()} CARDS IN YOUR ALBUM`, 28, { color: "#fff3c4", strokeThickness: 6 });
+    layer.add([title, count]);
+    card.scaleX = 0;
+    this.tweens.add({ targets: card, scaleX: 1, duration: 400, ease: "Back.easeOut" });
+    this.tweens.add({ targets: title, scale: 1.08, duration: 400, yoyo: true, repeat: -1 });
+    audio.play("newCard");
+    this.say("📖 NEW ALBUM CARD!", "#7CFC9A", 34);
+    this.time.delayedCall(2300, () => {
+      // off it goes, to the album (BACK, then ALBUM on the casino floor)
+      this.tweens.add({ targets: [title, count], alpha: 0, duration: 250 });
+      this.tweens.add({
+        targets: card, x: MENU.x + MENU.w / 2, y: MENU.y + MENU.h / 2, scale: 0.12, duration: 600, ease: "Cubic.easeIn",
+        onComplete: () => {
+          layer.destroy();
+          next();
+        },
+      });
+    });
+  }
+}

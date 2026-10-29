@@ -149,6 +149,20 @@ const SOUNDS = {
   ticket() {
     [C5, E5, G5, C6].forEach((f, i) => bell(f, i * 0.1));
   },
+  // a drumroll that builds, while the last reel decides
+  drumroll() {
+    for (let i = 0; i < 22; i++) noise(0.07, { volume: 0.05 + i * 0.006, filter: 900, delay: i * 0.055 });
+  },
+  // a firework: a whoosh up, a bang and a crackle
+  firework() {
+    noise(0.35, { volume: 0.05, filter: 2500, type: "bandpass" });
+    noise(0.4, { volume: 0.22, filter: 400, delay: 0.35 });
+    for (let i = 0; i < 8; i++) noise(0.03, { volume: 0.06, filter: 5000, type: "highpass", delay: 0.45 + i * 0.06 + Math.random() * 0.04 });
+  },
+  // a sparkle, for a new album card
+  newCard() {
+    [C6, 1319, 1568, 2093].forEach((f, i) => tone(f, 0.25, { type: "sine", volume: 0.05, delay: i * 0.07 }));
+  },
   // a soft, friendly "oh well"
   miss() {
     tone(440, 0.18, { type: "sine", volume: 0.05 });

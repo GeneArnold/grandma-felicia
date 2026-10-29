@@ -1,6 +1,7 @@
 // Starts the game: Phaser (loaded as vendor/phaser.min.js), the scenes, the back gesture and offline.
 import * as audio from "./audio.js";
 import * as store from "./storage.js";
+import { AlbumScene } from "./scenes/AlbumScene.js";
 import { BoardScene } from "./scenes/BoardScene.js";
 import { BootScene } from "./scenes/BootScene.js";
 import { FloorScene } from "./scenes/FloorScene.js";
@@ -21,7 +22,7 @@ const game = new Phaser.Game({
   backgroundColor: "#1c0710",
   banner: false,
   scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH, width: W * ZOOM, height: H * ZOOM },
-  scene: [BootScene, TitleScene, IntroScene, FloorScene, PlayScene, ScratchScene, ResultsScene, BoardScene],
+  scene: [BootScene, TitleScene, IntroScene, FloorScene, PlayScene, ScratchScene, ResultsScene, BoardScene, AlbumScene],
 });
 
 // Android's back gesture returns to the title instead of closing the app. The game in progress is

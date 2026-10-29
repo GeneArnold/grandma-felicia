@@ -1,5 +1,6 @@
 // The casino floor: every slot machine as a big card. Tap an open one to sit down at it. A locked
 // one says how many coins open it (a goal reached in any game on this phone opens it for good).
+// ALBUM shows the cards collected for every three in a row.
 import * as audio from "../audio.js";
 import * as store from "../storage.js";
 import { MACHINES, art } from "../machines.js";
@@ -7,7 +8,8 @@ import { listenForTaps, near } from "../taps.js";
 import { W, backdrop, button, coins, marquee, setupCamera, snow, text } from "../ui.js";
 
 const CARDS = [210, 520].flatMap((y) => [24, 276].map((x) => ({ x, y, w: 240, h: 290 })));
-const MENU = { x: W / 2 - 110, y: 850, w: 220, h: 80 };
+const ALBUM = { x: 30, y: 850, w: 230, h: 80 };
+const MENU = { x: 280, y: 850, w: 230, h: 80 };
 
 export class FloorScene extends Phaser.Scene {
   constructor() {
@@ -29,9 +31,11 @@ export class FloorScene extends Phaser.Scene {
     MACHINES.forEach((m, i) => this.drawCard(m, CARDS[i], unlocked.includes(m.id)));
     this.hint = text(this, W / 2, 822, "", 24, { color: "#fff3c4", strokeThickness: 5 });
 
+    button(this, ALBUM, 0x2a6f9d, "📖 ALBUM", 34);
     button(this, MENU, 0x7d5a3c, "MENU", 34);
     listenForTaps(this, (x, y) => {
-      if (near(x, y, MENU, 16)) return this.scene.start("Title");
+      if (near(x, y, ALBUM, 12)) return this.scene.start("Album");
+      if (near(x, y, MENU, 12)) return this.scene.start("Title");
       const i = CARDS.findIndex((r) => near(x, y, r, 6));
       if (i < 0) return;
       const m = MACHINES[i];
