@@ -22,7 +22,7 @@ export function unlock() {
     for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
     loadVoices();
   }
-  if (ctx.state === "suspended") ctx.resume().catch(() => {});
+  if (ctx.state !== "running") ctx.resume().catch(() => {}); // "suspended", or "interrupted" (iPhone, after a call)
 }
 
 function ready() {
@@ -200,10 +200,18 @@ async function loadVoices() {
   }
 }
 
-export function say(kind, delay = 0) {
-  if (!ready()) return;
+// A line right after the first tap (Felicia's hello) can come before the phone has turned the sound
+// on (Android waits for the finger to lift) or before the clips have loaded, so it waits for both,
+// up to VOICE_WAIT_MS; after that the moment has passed and it stays quiet.
+const VOICE_WAIT_MS = 2500;
+
+export function say(kind, delay = 0, waited = 0) {
+  if (!enabled) return;
   const recorded = Object.keys(VOICES[kind] || {}).filter((id) => clips[id]);
-  if (!recorded.length) return;
+  if (!ready() || !recorded.length) {
+    if (ctx && waited < VOICE_WAIT_MS) setTimeout(() => say(kind, Math.max(0, delay - 0.1), waited + 100), 100);
+    return;
+  }
   const src = ctx.createBufferSource();
   src.buffer = clips[recorded[Math.floor(Math.random() * recorded.length)]];
   const gain = ctx.createGain();
