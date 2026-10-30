@@ -79,8 +79,6 @@ const FILES = [
   "voices/over-2.mp3",
   "voices/santa-1.mp3",
   "voices/santa-2.mp3",
-  "voices/scratch-1.mp3",
-  "voices/scratch-2.mp3",
   "voices/ticket-1.mp3",
   "voices/ticket-2.mp3",
   "voices/welcome-1.mp3",
@@ -88,6 +86,11 @@ const FILES = [
   "voices/win-1.mp3",
   "voices/win-2.mp3",
   "voices/win-3.mp3",
+  "voices/win-4.mp3",
+  "voices/win-5.mp3",
+  "voices/win-6.mp3",
+  "voices/win-7.mp3",
+  "voices/win-8.mp3",
 ];
 
 self.addEventListener("install", (event) => {

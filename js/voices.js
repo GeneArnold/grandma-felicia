@@ -19,12 +19,18 @@ export const VOICES = {
   },
   welcome: {
     "welcome-1": "Welcome to the Christmas Casino! Here are your coins. Good luck!",
-    "welcome-2": "Merry Christmas! Let's pull that lever!",
+    "welcome-2": "Merry Christmas! Let's play!",
   },
+  // any win: on the slots or a scratch-off, so nothing here says how it was won
   win: {
     "win-1": "Winner!",
     "win-2": "Ho ho, nice one!",
     "win-3": "Look at that!",
+    "win-4": "You did it!",
+    "win-5": "Way to go!",
+    "win-6": "Lucky you!",
+    "win-7": "Well, look at you, a winner!",
+    "win-8": "Ooh, that's a good one!",
   },
   bigWin: {
     "big-1": "Big win! Big win!",
@@ -33,15 +39,11 @@ export const VOICES = {
   },
   jackpot: {
     "jackpot-1": "Jackpot! Jackpot! Merry Christmas!",
-    "jackpot-2": "Three gold stars! It's the jackpot!",
+    "jackpot-2": "It's the jackpot! What a win!",
   },
   ticket: {
     "ticket-1": "You won a scratch-off ticket!",
     "ticket-2": "Scratch-off time!",
-  },
-  scratchWin: {
-    "scratch-1": "It's a match! You win!",
-    "scratch-2": "Three of a kind! Winner!",
   },
   santa: {
     "santa-1": "Ho ho ho! Merry Christmas! Here's a little something for you.",

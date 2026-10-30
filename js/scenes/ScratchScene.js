@@ -172,7 +172,7 @@ export class ScratchScene extends Phaser.Scene {
     const won = text(this, W / 2, 748, `YOU WIN ${coins(prize)} COINS!`, 42, { color: "#2a9d3a", stroke: "#ffffff", strokeThickness: 7 });
     this.tweens.add({ targets: won, scale: 1.08, duration: 400, yoyo: true, repeat: -1 });
     audio.play(prize >= BIG_WIN ? "bigWin" : "win");
-    audio.say("scratchWin", 0.2);
+    audio.say(prize >= BIG_WIN ? "bigWin" : "win", 0.2);
     coinShower(this, W / 2, 748, W / 2, 40, Math.ceil(prize / 10));
 
     if (prize < BIG_WIN) return this.showBack(BACK_BIG);
