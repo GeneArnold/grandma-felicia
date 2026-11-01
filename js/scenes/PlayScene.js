@@ -5,7 +5,7 @@
 import * as audio from "../audio.js";
 import * as store from "../storage.js";
 import { art, machine } from "../machines.js";
-import { BET, BIG_WIN, START_COINS, SYMBOLS, TICKET, canPull, santaVisit, scratchTicket, spin } from "../rules.js";
+import { BET, BIG_WIN, PAIR_PAY, START_COINS, SYMBOLS, TICKET, canPull, santaVisit, scratchTicket, spin } from "../rules.js";
 import { shareWin, snapshot } from "../share.js";
 import { listenForTaps, near } from "../taps.js";
 import { H, W, backdrop, button, coinShower, coins, marquee, setupCamera, text } from "../ui.js";
@@ -183,7 +183,7 @@ export class PlayScene extends Phaser.Scene {
     row(832, [0, 1, 2]);
     row(874, [3, 4, 5]);
     text(this, 46, 922, "ANY 2 THE SAME", 22, { originX: 0, strokeThickness: 4 });
-    text(this, 228, 922, "10", 26, { originX: 0, color: "#ffe066", strokeThickness: 5 });
+    text(this, 228, 922, String(PAIR_PAY), 26, { originX: 0, color: "#ffe066", strokeThickness: 5 });
     this.picture(300, 922, TICKET, 34);
     this.picture(330, 922, TICKET, 34);
     text(this, 356, 922, "SCRATCH-OFF!", 22, { originX: 0, color: "#7CFC9A", strokeThickness: 4 });

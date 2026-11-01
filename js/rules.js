@@ -18,7 +18,7 @@ export const SYMBOLS = [
   { weight: 3, pay: 0 }, // the ticket
 ];
 export const TICKET = 6;
-export const PAIR_PAY = 10; // any two the same (not tickets)
+export const PAIR_PAY = 15; // any two the same (not tickets)
 export const BIG_WIN = 100; // a win this size gets the big cheer and the share button
 
 function pickWeighted(items, rng) {
@@ -42,7 +42,7 @@ export function judge(line) {
 
 // Now and then a pull lines up three of the four best pictures (the bigger the pay, the rarer), so the
 // big wins come round more often than the reels alone would bring them.
-export const LUCKY_CHANCE = 0.008;
+export const LUCKY_CHANCE = 0.006;
 const LUCKY = [0, 1, 2, 3].map((kind) => ({ kind, weight: kind + 1 }));
 
 export function spin(rng = Math.random) {
@@ -72,7 +72,7 @@ const SCRATCH_PRIZES = [
   { coins: 250, weight: 12 },
   { coins: 500, weight: 6 },
 ];
-export const SCRATCH_WIN_CHANCE = 0.6;
+export const SCRATCH_WIN_CHANCE = 0.45;
 export const TICKET_TYPES = ["match3", "gifts", "lucky", "tictac"];
 
 function shuffle(list, rng) {
